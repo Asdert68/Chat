@@ -36,11 +36,15 @@ process_requests(Clients, Servers) ->
             broadcast(Servers, {message,Name,Text}),  %% TODO: COMPLETE
             process_requests(Clients, Servers);
         {client_send_file, Name, ClientPid, Nombre} ->
+        %%"+Nombre+"
+            Mnsaje="Socket preparado para archivo con nombre: \n",
+            mensaje(ClientPid,{message,Name,Mnsaje}),
             {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
             {ok, Sock} = gen_tcp:accept(LSock),
-            Mnsaje="Socket preparado para archivo con nombre: "+Nombre+"\n",
-            mensaje(ClientPid,{message,Name,Mnsaje}),       
+                   
             file_receiver_loop(Sock,Nombre,[]),
+                ok = gen_tcp:close(Sock),
+ok = gen_tcp:close(LSock),
             process_requests(Clients, Servers);
         %% Messages between servers
         disconnect ->
@@ -84,6 +88,6 @@ file_receiver_loop(Socket,Filename,Bs)->
 end.
 save_file(Filename,Bs) ->
     io:format("~nFilename: ~p",[Filename]),
-    {ok, Fd} = file:open("../script/"++Filename, write),
+    {ok, Fd} = file:open("./script/"++Filename, write),
     file:write(Fd, Bs),
     file:close(Fd).
