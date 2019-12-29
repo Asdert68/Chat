@@ -42,9 +42,10 @@ process_commands(ServerPid, MyName, ClientPid) ->
             ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
             ok;
         Text == "message\n" ->
-            Nombre = io:get_line("[ENTER FILENAME]->"),
+            Nombre = string:trim(io:get_line("[ENTER FILENAME]->")),
+
             ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
-            Otro = io:get_line("[ENTER FILEPATH]->"),
+            Otro = string:trim(io:get_line("[ENTER FILEPATH]->")),
             send_file("localhost", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
         true ->
