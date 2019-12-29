@@ -2,7 +2,7 @@
 %% Exported Functions
 -export([start/2]).
 
--define(TCP_OPTIONS_CLIENT, [binary, {packet, 0}, {active, false}]).
+%%-define(TCP_OPTIONS_CLIENT, [binary, {packet, 0}, {active, false}]).
 
 %% API Functions
 start(ServerPid, MyName) ->
@@ -42,9 +42,10 @@ process_commands(ServerPid, MyName, ClientPid) ->
             ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
             ok;
         Text == "message\n" ->
-            ServerPid ! {client_send_file, MyName, ClientPid},  %% TODO: COMPLETE
+            Nombre = io:get_line("[ENTER FILENAME]->"),
+            ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
             Otro = io:get_line("[ENTER FILEPATH]->"),
-            send_file(127.0.0.1, Otro, 5678),
+            send_file("127.0.0.1", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
@@ -53,7 +54,7 @@ process_commands(ServerPid, MyName, ClientPid) ->
 
 %Funcion para generar el socket de conexion entre servidor y client_leave_req
   send_file(Host,FilePath,Port)->
-    {ok, Socket} = gen_tcp:connect(Host, Port, TCP_OPTIONS_CLIENT),
+    {ok, Socket} = gen_tcp:connect(Host, Port,[binary, {packet, 0}]),
     %FilenamePadding = string:left(Filename, 30, $ ), %%Padding with white space
     %gen_tcp:send(Socket,Filename),
     Ret=file:sendfile(FilePath, Socket),

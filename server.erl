@@ -35,9 +35,12 @@ process_requests(Clients, Servers) ->
         {send, Name, Text} ->
             broadcast(Servers, {message,Name,Text}),  %% TODO: COMPLETE
             process_requests(Clients, Servers);
-        {client_send_file, Name, ClientPid} ->
-            Mnsaje="Socket preparado, enviame el nombre del mensaje\n",
-            mensaje(ClientPid,{message,Name,Mnsaje}),
+        {client_send_file, Name, ClientPid, Nombre} ->
+            {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
+            {ok, Sock} = gen_tcp:accept(LSock),
+            Mnsaje="Socket preparado para archivo con nombre: "+Nombre+"\n",
+            mensaje(ClientPid,{message,Name,Mnsaje}),       
+            file_receiver_loop(Sock,Nombre,[]),
             process_requests(Clients, Servers);
         %% Messages between servers
         disconnect ->
