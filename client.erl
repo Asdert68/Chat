@@ -2,6 +2,8 @@
 %% Exported Functions
 -export([start/2]).
 
+-define(TCP_OPTIONS_CLIENT, [binary, {packet, 0}, {active, false}]).
+
 %% API Functions
 start(ServerPid, MyName) ->
     ClientPid = spawn(fun() -> init_client(ServerPid, MyName) end),
@@ -27,7 +29,7 @@ process_requests() ->
             io:format("[~s] ~s", [Name, Text]),
             process_requests();
             %% TODO: ADD SOME CODE
-        exit -> 
+        exit ->
             ok
     end.
 
@@ -35,16 +37,24 @@ process_requests() ->
 process_commands(ServerPid, MyName, ClientPid) ->
     %% Read from standard input and send to server
     Text = io:get_line("-> "),
-    if 
+    if
         Text  == "exit\n" ->
             ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
             ok;
         Text == "message\n" ->
             ServerPid ! {client_send_file, MyName, ClientPid},  %% TODO: COMPLETE
-            Otro = io:get_line("[ENTER FILENAME]->"),
-            
+            Otro = io:get_line("[ENTER FILEPATH]->"),
+            send_file(127.0.0.1, Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)
     end.
+
+%Funcion para generar el socket de conexion entre servidor y client_leave_req
+  send_file(Host,FilePath,Port)->
+    {ok, Socket} = gen_tcp:connect(Host, Port, TCP_OPTIONS_CLIENT),
+    %FilenamePadding = string:left(Filename, 30, $ ), %%Padding with white space
+    %gen_tcp:send(Socket,Filename),
+    Ret=file:sendfile(FilePath, Socket),
+    ok = gen_tcp:close(Socket).

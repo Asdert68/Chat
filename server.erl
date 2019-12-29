@@ -1,6 +1,8 @@
--module(server2).
+-module(server).
 %% Exported Functions
 -export([start/0, start/1]).
+
+-define(TCP_OPTIONS_SERVER, [binary, {packet, 0}, {active, false}]).
 
 %% API Functions
 start() ->
@@ -49,7 +51,7 @@ process_requests(Clients, Servers) ->
         {update_servers, NewServers} ->
             io:format("[SERVER UPDATE] ~w~n", [NewServers]),
             process_requests(Clients, NewServers);  %% TODO: COMPLETE
-            
+
         RelayMessage -> %% Whatever other message is relayed to its clients
             broadcast(Clients, RelayMessage),
             process_requests(Clients, Servers)
@@ -70,7 +72,7 @@ file_name_receiver(Socket)->
     file_receiver_loop(Socket,Filename,[]).
 
 file_receiver_loop(Socket,Filename,Bs)->
-    io:format("~nRicezione file in corso~n"),
+    io:format("~nTransmision en curso~n"),
     case gen_tcp:recv(Socket, 0) of
     {ok, B} ->
         file_receiver_loop(Socket, Filename,[Bs, B]);
