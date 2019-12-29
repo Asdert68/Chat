@@ -45,7 +45,7 @@ process_commands(ServerPid, MyName, ClientPid) ->
             Nombre = io:get_line("[ENTER FILENAME]->"),
             ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
             Otro = io:get_line("[ENTER FILEPATH]->"),
-            send_file("127.0.0.1", Otro, 5678),
+            send_file("localhost", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
