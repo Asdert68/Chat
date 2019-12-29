@@ -33,9 +33,9 @@ process_requests(Clients, Servers) ->
         {send, Name, Text} ->
             broadcast(Servers, {message,Name,Text}),  %% TODO: COMPLETE
             process_requests(Clients, Servers);
-        {client_send_file, Name, Text} ->
-            file_name_receiver,
-            file_receiver_loop,
+        {client_send_file, Name, ClientPid} ->
+            Mnsaje="Socket preparado, enviame el nombre del mensaje\n",
+            mensaje(ClientPid,{message,Name,Mnsaje}),
             process_requests(Clients, Servers);
         %% Messages between servers
         disconnect ->
@@ -59,6 +59,9 @@ process_requests(Clients, Servers) ->
 broadcast(PeerList, Message) ->
     Fun = fun(Peer) -> Peer ! Message end,
     lists:map(Fun, PeerList).
+
+mensaje(ClientPid, Mnsaje) ->
+    ClientPid ! Mnsaje .
 
 file_name_receiver(Socket)->
     {ok,FilenameBinaryPadding}=gen_tcp:recv(Socket,30),

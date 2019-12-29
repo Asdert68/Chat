@@ -41,7 +41,9 @@ process_commands(ServerPid, MyName, ClientPid) ->
             ok;
         Text == "message\n" ->
             ServerPid ! {client_send_file, MyName, ClientPid},  %% TODO: COMPLETE
-            ok;
+            Otro = io:get_line("[ENTER FILENAME]->"),
+            
+            process_commands(ServerPid, MyName, ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)
