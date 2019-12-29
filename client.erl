@@ -39,6 +39,9 @@ process_commands(ServerPid, MyName, ClientPid) ->
         Text  == "exit\n" ->
             ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
             ok;
+        Text == "message\n" ->
+            ServerPid ! {client_send_file, MyName, ClientPid},  %% TODO: COMPLETE
+            ok;
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)

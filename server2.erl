@@ -33,7 +33,10 @@ process_requests(Clients, Servers) ->
         {send, Name, Text} ->
             broadcast(Servers, {message,Name,Text}),  %% TODO: COMPLETE
             process_requests(Clients, Servers);
-        
+        {client_send_file, Name, Text} ->
+            file_name_receiver,
+            file_receiver_loop,
+            process_requests(Clients, Servers);
         %% Messages between servers
         disconnect ->
             NewServers = lists:delete(self(), Servers),  %% TODO: COMPLETE
@@ -56,3 +59,23 @@ process_requests(Clients, Servers) ->
 broadcast(PeerList, Message) ->
     Fun = fun(Peer) -> Peer ! Message end,
     lists:map(Fun, PeerList).
+
+file_name_receiver(Socket)->
+    {ok,FilenameBinaryPadding}=gen_tcp:recv(Socket,30),
+    FilenamePadding=erlang:binary_to_list(FilenameBinaryPadding),
+    Filename = string:strip(FilenamePadding,both,$ ),
+    file_receiver_loop(Socket,Filename,[]).
+
+file_receiver_loop(Socket,Filename,Bs)->
+    io:format("~nRicezione file in corso~n"),
+    case gen_tcp:recv(Socket, 0) of
+    {ok, B} ->
+        file_receiver_loop(Socket, Filename,[Bs, B]);
+    {error, closed} ->
+        save_file(Filename,Bs)
+end.
+save_file(Filename,Bs) ->
+    io:format("~nFilename: ~p",[Filename]),
+    {ok, Fd} = file:open("../script/"++Filename, write),
+    file:write(Fd, Bs),
+    file:close(Fd).
