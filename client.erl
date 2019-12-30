@@ -18,11 +18,11 @@ init_client(ServerPid, MyName) ->
 process_requests() ->
     receive
         {join, Name} ->
-            io:format("[JOIN] ~s joined the chat~n", [Name]),
+            io:format("[JOIN] ~s se unió al chat~n", [Name]),
             process_requests();
             %% TODO: ADD SOME CODE
         {leave, Name} ->
-            io:format("[LEAVE] ~s leaved the chat~n", [Name]),
+            io:format("[LEAVE] ~s dejó el chat~n", [Name]),
             %% TODO: ADD SOME CODE
             process_requests();
         {message, Name, Text} ->
@@ -41,19 +41,19 @@ process_commands(ServerPid, MyName, ClientPid) ->
         Text  == "exit\n" ->
             ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
             ok;
-        Text == "message\n" ->
-            Nombre = string:trim(io:get_line("[ENTER FILENAME]->")),
+        Text == "Subida\n" ->
+            Nombre = string:trim(io:get_line("[Introduce Nombre del Archivo]->")),
             ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
-            Otro = string:trim(io:get_line("[ENTER FILEPATH]->")),
+            Otro = string:trim(io:get_line("[Introduce Dirección del Archivo]->")),
             send_file("localhost", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
-        Text == "lista\n" ->
+        Text == "ListaArchivos\n" ->
             ServerPid ! {files_to_Download, MyName, ClientPid},
             process_commands(ServerPid, MyName, ClientPid);
 
         Text == "Descarga\n" ->
 
-            Nombre = string:trim(io:get_line("[ENTER FILENAME]->")),
+            Nombre = string:trim(io:get_line("[Introduce Nombre del Archivo]->")),
             Ip=local_ip_v4(),
             ServerPid ! {client_download_file, MyName, ClientPid, Nombre, Ip},
             {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
@@ -62,7 +62,15 @@ process_commands(ServerPid, MyName, ClientPid) ->
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
             process_commands(ServerPid, MyName, ClientPid);
+        Text == "Usuarios\n" ->
+            ServerPid ! {users_in_server, MyName, ClientPid},
+            process_commands(ServerPid,MyName,ClientPid);
+        Text == "Envia\n" ->
+            Nombre = string:trim(io:get_line("[Introduce Nombre del Usuario]->")),
+            Texto = string:trim(io:get_line("[Introduce el Mensaje]->")),
 
+            ServerPid ! {envia_usuario, MyName, Texto, Nombre},
+            process_commands(ServerPid,MyName,ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)
