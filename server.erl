@@ -45,6 +45,15 @@ process_requests(Clients, Servers) ->
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
             process_requests(Clients, Servers);
+        {files_to_Download, Name, ClientPid} ->
+            {ok, Lista}=file:list_dir("./script/"),
+            io:fwrite("~p~n",[Lista]),
+            Mnsaje=lists:flatten(io_lib:format("~p",[Lista])),
+            %%Fun = fun(Per) -> Per ! Mnsaje=Mnsaje+Per end,
+            %%lists:map(Fun, Lista),
+            mensaje(ClientPid,{message,Name,Mnsaje}),
+            process_requests(Clients, Servers);  %% TODO: COMPLETE
+
         %% Messages between servers
         disconnect ->
             NewServers = lists:delete(self(), Servers),  %% TODO: COMPLETE

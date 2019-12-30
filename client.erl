@@ -48,6 +48,9 @@ process_commands(ServerPid, MyName, ClientPid) ->
             Otro = string:trim(io:get_line("[ENTER FILEPATH]->")),
             send_file("localhost", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
+        Text == "lista\n" ->
+            ServerPid ! {files_to_Download, MyName, ClientPid},
+            process_commands(ServerPid, MyName, ClientPid);
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)
