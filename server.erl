@@ -36,7 +36,6 @@ process_requests(Clients, Servers) ->
             broadcast(Servers, {message,Name,Text}),  %% TODO: COMPLETE
             process_requests(Clients, Servers);
         {client_send_file, Name, ClientPid, Nombre} ->
-        %%"+Nombre+"
             Mnsaje="Socket preparado para archivo con nombre: \n",
             mensaje(ClientPid,{message,Name,Mnsaje}),
             {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
@@ -45,13 +44,22 @@ process_requests(Clients, Servers) ->
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
             process_requests(Clients, Servers);
+
+        {client_download_file, Name, ClientPid, Nombre, Ip} ->
+            Mnsaje="Socket preparado para archivo con nombre: \n",
+            mensaje(ClientPid,{message,Name,Mnsaje}),
+            Otro = "./script/" ++ Nombre,
+            send_file(Ip, Otro, 5678),
+            process_requests(Clients, Servers);
+
+
+
         {files_to_Download, Name, ClientPid} ->
             {ok, Lista}=file:list_dir("./script/"),
-            io:fwrite("~p~n",[Lista]),
             Mnsaje=lists:flatten(io_lib:format("~p",[Lista])),
-            %%Fun = fun(Per) -> Per ! Mnsaje=Mnsaje+Per end,
-            %%lists:map(Fun, Lista),
+            Add="\n",
             mensaje(ClientPid,{message,Name,Mnsaje}),
+            mensaje(ClientPid,{message,Name,Add}),
             process_requests(Clients, Servers);  %% TODO: COMPLETE
 
         %% Messages between servers
@@ -94,3 +102,10 @@ save_file(Filename,Bs) ->
     file:write(Fd, Bs),
     file:close(Fd),
     io:format("~nTransmision finalizado~n").
+
+send_file(Host,FilePath,Port)->
+    {ok, Socket} = gen_tcp:connect(Host, Port,[binary, {packet, 0}]),
+    %FilenamePadding = string:left(Filename, 30, $ ), %%Padding with white space
+    %gen_tcp:send(Socket,Filename),
+    Ret=file:sendfile(FilePath, Socket),
+    ok = gen_tcp:close(Socket).
