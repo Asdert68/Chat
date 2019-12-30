@@ -43,7 +43,6 @@ process_commands(ServerPid, MyName, ClientPid) ->
             ok;
         Text == "message\n" ->
             Nombre = string:trim(io:get_line("[ENTER FILENAME]->")),
-
             ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
             Otro = string:trim(io:get_line("[ENTER FILEPATH]->")),
             send_file("localhost", Otro, 5678),
@@ -51,6 +50,19 @@ process_commands(ServerPid, MyName, ClientPid) ->
         Text == "lista\n" ->
             ServerPid ! {files_to_Download, MyName, ClientPid},
             process_commands(ServerPid, MyName, ClientPid);
+
+        Text == "Descarga\n" ->
+
+            Nombre = string:trim(io:get_line("[ENTER FILENAME]->")),
+            Ip=local_ip_v4(),
+            ServerPid ! {client_download_file, MyName, ClientPid, Nombre, Ip},
+            {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
+            {ok, Sock} = gen_tcp:accept(LSock),       
+            file_receiver_loop(Sock,Nombre,[]),
+            ok = gen_tcp:close(Sock),
+            ok = gen_tcp:close(LSock),
+            process_commands(ServerPid, MyName, ClientPid);
+
         true ->
             ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
             process_commands(ServerPid, MyName, ClientPid)
@@ -63,3 +75,25 @@ process_commands(ServerPid, MyName, ClientPid) ->
     %gen_tcp:send(Socket,Filename),
     Ret=file:sendfile(FilePath, Socket),
     ok = gen_tcp:close(Socket).
+
+file_receiver_loop(Socket,Filename,Bs)->
+    io:format("~nTransmision en curso~n"),
+    case gen_tcp:recv(Socket, 0) of
+    {ok, B} ->
+        file_receiver_loop(Socket, Filename,[Bs, B]);
+    {error, closed} ->
+        save_file(Filename,Bs)
+end.
+save_file(Filename,Bs) ->
+    io:format("~nFilename: ~p",[Filename]),
+    {ok, Fd} = file:open("./descargas/"++Filename, write),
+    file:write(Fd, Bs),
+    file:close(Fd),
+    io:format("~nTransmision finalizado~n").
+
+local_ip_v4() ->
+    {ok, Addrs} = inet:getifaddrs(),
+    hd([
+         Addr || {_, Opts} <- Addrs, {addr, Addr} <- Opts,
+         size(Addr) == 4, Addr =/= {127,0,0,1}
+    ]).
