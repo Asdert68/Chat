@@ -70,8 +70,8 @@ process_requests(Clients,ClientsName, Servers) ->
             process_requests(Clients, ClientsName, Servers);  %% TODO: COMPLETE
         {envia_usuario, Name, Texto, Username} ->
             Contador = 1,
-            Size = lists:flatlength(Clients),
-            Size = ("~w",[Size+1]),
+            Size = lists:flatlength(Clients)+1,
+            
             func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers, Size);
             %%Contador = lists:seq(0,lists:sum(ClientsName)--1),
             %%Val = lists:nth(1,ClientsName),
@@ -156,7 +156,7 @@ func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers,Size) ->
                     process_requests(Clients, ClientsName, Servers);  %% TODO: COMPLETE
                 
                     true ->
-                        func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers,Size)
+                        func_rec(Contador+1,ClientsName,Clients,Username,Name,Texto,Servers,Size)
                 end;
             false->process_requests(Clients, ClientsName, Servers)
         end.
