@@ -52,12 +52,12 @@ process_requests(Clients,ClientsName, Servers) ->
         {client_download_file, Name, ClientPid, Nombre, Ip} ->
             Mnsaje="Socket preparado para archivo con nombre: \n" ++ Nombre,
             mensaje(ClientPid,{message,Name,Mnsaje}),
-            Otro = "./script/" ++ Nombre,
+            Otro = "./descargas/" ++ Nombre,
             send_file(Ip, Otro, 5678),
             process_requests(Clients, ClientsName, Servers);
 
         {files_to_Download, Name, ClientPid} ->
-            {ok, Lista}=file:list_dir("./script/"),
+            {ok, Lista}=file:list_dir("./descargas/"),
             Mnsaje=lists:flatten(io_lib:format("~p",[Lista])),
             Add="\n",
             mensaje(ClientPid,{message,Name,Mnsaje}),
