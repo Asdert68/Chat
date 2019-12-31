@@ -2,7 +2,6 @@
 %% Exported Functions
 -export([start/2]).
 
-%%-define(TCP_OPTIONS_CLIENT, [binary, {packet, 0}, {active, false}]).
 
 %% API Functions
 start(ServerPid, MyName) ->
@@ -10,7 +9,7 @@ start(ServerPid, MyName) ->
     process_commands(ServerPid, MyName, ClientPid).
 
 init_client(ServerPid, MyName) ->
-    ServerPid ! {client_join_req, MyName, self()},  %% TODO: COMPLETE
+    ServerPid ! {client_join_req, MyName, self()},
     process_requests().
 
 %% Local Functions
@@ -20,15 +19,15 @@ process_requests() ->
         {join, Name} ->
             io:format("[JOIN] ~s se unió al chat~n", [Name]),
             process_requests();
-            %% TODO: ADD SOME CODE
+
         {leave, Name} ->
             io:format("[LEAVE] ~s dejó el chat~n", [Name]),
-            %% TODO: ADD SOME CODE
+
             process_requests();
         {message, Name, Text} ->
             io:format("[~s] ~s", [Name, Text]),
             process_requests();
-            %% TODO: ADD SOME CODE
+
         exit ->
             ok
     end.
@@ -39,48 +38,49 @@ process_commands(ServerPid, MyName, ClientPid) ->
     Text = io:get_line("-> "),
     if
         Text  == "exit\n" ->
-            ServerPid ! {client_leave_req, MyName, ClientPid},  %% TODO: COMPLETE
+            ServerPid ! {client_leave_req, MyName, ClientPid},
             ok;
+
         Text == "Subida\n" ->
             Nombre = string:trim(io:get_line("[Introduce Nombre del Archivo]->")),
-            ServerPid ! {client_send_file, MyName, ClientPid, Nombre},  %% TODO: COMPLETE
+            ServerPid ! {client_send_file, MyName, ClientPid, Nombre},
             Otro = string:trim(io:get_line("[Introduce Dirección del Archivo]->")),
             send_file("localhost", Otro, 5678),
             process_commands(ServerPid, MyName, ClientPid);
+
         Text == "ListaArchivos\n" ->
             ServerPid ! {files_to_Download, MyName, ClientPid},
             process_commands(ServerPid, MyName, ClientPid);
 
         Text == "Descarga\n" ->
-
             Nombre = string:trim(io:get_line("[Introduce Nombre del Archivo]->")),
             Ip=local_ip_v4(),
             ServerPid ! {client_download_file, MyName, ClientPid, Nombre, Ip},
             {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
-            {ok, Sock} = gen_tcp:accept(LSock),       
+            {ok, Sock} = gen_tcp:accept(LSock),
             file_receiver_loop(Sock,Nombre,[]),
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
             process_commands(ServerPid, MyName, ClientPid);
+
         Text == "Usuarios\n" ->
             ServerPid ! {users_in_server, MyName, ClientPid},
             process_commands(ServerPid,MyName,ClientPid);
+
         Text == "Envia\n" ->
             Nombre = string:trim(io:get_line("[Introduce Nombre del Usuario]->")),
             Texto = (io:get_line("[Introduce el Mensaje]->")),
-
             ServerPid ! {envia_usuario, MyName, Texto, Nombre},
             process_commands(ServerPid,MyName,ClientPid);
+
         true ->
-            ServerPid ! {send, MyName, Text},  %% TODO: COMPLETE
+            ServerPid ! {send, MyName, Text},
             process_commands(ServerPid, MyName, ClientPid)
     end.
 
 %Funcion para generar el socket de conexion entre servidor y client_leave_req
-  send_file(Host,FilePath,Port)->
+send_file(Host,FilePath,Port)->
     {ok, Socket} = gen_tcp:connect(Host, Port,[binary, {packet, 0}]),
-    %FilenamePadding = string:left(Filename, 30, $ ), %%Padding with white space
-    %gen_tcp:send(Socket,Filename),
     Ret=file:sendfile(FilePath, Socket),
     ok = gen_tcp:close(Socket).
 
@@ -92,6 +92,7 @@ file_receiver_loop(Socket,Filename,Bs)->
     {error, closed} ->
         save_file(Filename,Bs)
 end.
+
 save_file(Filename,Bs) ->
     io:format("~nFilename: ~p",[Filename]),
     {ok, Fd} = file:open("./descargas/"++Filename, write),
@@ -99,6 +100,7 @@ save_file(Filename,Bs) ->
     file:close(Fd),
     io:format("~nTransmision finalizado~n").
 
+%Funcion auxiliar que se encarga de enviar la ip del cliente al servidor.
 local_ip_v4() ->
     {ok, Addrs} = inet:getifaddrs(),
     hd([
