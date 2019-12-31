@@ -95,7 +95,7 @@ end.
 
 save_file(Filename,Bs) ->
     io:format("~nFilename: ~p",[Filename]),
-    {ok, Fd} = file:open("./descargas/"++Filename, write),
+    {ok, Fd} = file:open("./descargasCliente/"++Filename, write),
     file:write(Fd, Bs),
     file:close(Fd),
     io:format("~nTransmision finalizado~n").

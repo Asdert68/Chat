@@ -44,8 +44,8 @@ process_requests(Clients,ClientsName, Servers) ->
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
 
-            Fun = fun(ServerPid2) -> ServerPid2 ! {server_send_file, Nombre} end,
-            lists:map(Fun, Servers),
+            %%Fun = fun(ServerPid2) -> ServerPid2 ! {server_send_file, Nombre} end,
+            %%lists:map(Fun, Servers),
 
             process_requests(Clients, ClientsName, Servers);
 
@@ -79,13 +79,13 @@ process_requests(Clients,ClientsName, Servers) ->
             broadcast(NewServers, {update_servers, NewServers}),
             unregister(myserver);
 
-        {server_send_file, Nombre} ->
-            {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
-            {ok, Sock} = gen_tcp:accept(LSock),
-            file_receiver_loop(Sock,Nombre,[]),
-            ok = gen_tcp:close(Sock),
-            ok = gen_tcp:close(LSock),
-            process_requests(Clients, ClientsName, Servers);
+        %%{server_send_file, Nombre} ->
+            %%{ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
+            %%{ok, Sock} = gen_tcp:accept(LSock),
+            %%file_receiver_loop(Sock,Nombre,[]),
+            %%ok = gen_tcp:close(Sock),
+            %%ok = gen_tcp:close(LSock),
+            %%process_requests(Clients, ClientsName, Servers);
 
         {server_join_req, From} ->
             NewServers = [From|Servers],
@@ -118,7 +118,7 @@ file_receiver_loop(Socket,Filename,Bs)->
 end.
 save_file(Filename,Bs) ->
     io:format("~nFilename: ~p",[Filename]),
-    {ok, Fd} = file:open("./script/"++Filename, write),
+    {ok, Fd} = file:open("./descargas/"++Filename, write),
     file:write(Fd, Bs),
     file:close(Fd),
     io:format("~nTransmision finalizado~n").
