@@ -43,6 +43,10 @@ process_requests(Clients,ClientsName, Servers) ->
             file_receiver_loop(Sock,Nombre,[]),
             ok = gen_tcp:close(Sock),
             ok = gen_tcp:close(LSock),
+
+            Fun = fun(ServerPid2) -> ServerPid2 ! {server_send_file, Nombre} end,
+            lists:map(Fun, Servers),
+
             process_requests(Clients, ClientsName, Servers);
 
         {client_download_file, Name, ClientPid, Nombre, Ip} ->
@@ -68,12 +72,21 @@ process_requests(Clients,ClientsName, Servers) ->
         {envia_usuario, Name, Texto, Username} ->
             Contador = 1,
             Size = lists:flatlength(Clients)+1,
-
+            func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers, Size); 
         %% Messages between servers
         disconnect ->
             NewServers = lists:delete(self(), Servers),
             broadcast(NewServers, {update_servers, NewServers}),
             unregister(myserver);
+
+        {server_send_file, Nombre} ->
+            {ok, LSock} = gen_tcp:listen(5678, [binary, {packet, 0}, {active, false}]),
+            {ok, Sock} = gen_tcp:accept(LSock),
+            file_receiver_loop(Sock,Nombre,[]),
+            ok = gen_tcp:close(Sock),
+            ok = gen_tcp:close(LSock),
+            process_requests(Clients, ClientsName, Servers);
+
         {server_join_req, From} ->
             NewServers = [From|Servers],
             broadcast(NewServers, {update_servers, NewServers}),
