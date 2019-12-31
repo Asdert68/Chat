@@ -67,7 +67,7 @@ process_commands(ServerPid, MyName, ClientPid) ->
             process_commands(ServerPid,MyName,ClientPid);
         Text == "Envia\n" ->
             Nombre = string:trim(io:get_line("[Introduce Nombre del Usuario]->")),
-            Texto = string:trim(io:get_line("[Introduce el Mensaje]->")),
+            Texto = (io:get_line("[Introduce el Mensaje]->")),
 
             ServerPid ! {envia_usuario, MyName, Texto, Nombre},
             process_commands(ServerPid,MyName,ClientPid);
