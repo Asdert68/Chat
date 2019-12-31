@@ -69,7 +69,10 @@ process_requests(Clients,ClientsName, Servers) ->
             mensaje(ClientPid,{message,Name,Mnsaje}),
             process_requests(Clients, ClientsName, Servers);  %% TODO: COMPLETE
         {envia_usuario, Name, Texto, Username} ->
-            func_rec(0,ClientsName,Clients,Username,Name,Texto,Servers);
+            Contador = 1,
+            Size = lists:flatlength(Clients),
+            Size = ("~w",[Size+1]),
+            func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers, Size);
             %%Contador = lists:seq(0,lists:sum(ClientsName)--1),
             %%Val = lists:nth(1,ClientsName),
             %%Val2 = lists:nth(1,Clients),
@@ -137,18 +140,24 @@ send_file(Host,FilePath,Port)->
     Ret=file:sendfile(FilePath, Socket),
     ok = gen_tcp:close(Socket).
 
-func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers) ->
-    Val = lists:nth(Contador,ClientsName),
-    Val2 = lists:nth(Contador,Clients),
-    if
-        Val == Username ->
-            io:fwrite("true"),
-            mensaje(Val2,{message,Name,Texto}),
-            process_requests(Clients, ClientsName, Servers);  %% TODO: COMPLETE
-        case Contador<lists:sum(ClientsName) of
-            true->  io:fwrite("true");%% TODO: COMPLETE
+func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers,Size) ->
+    io:fwrite("~w",[Contador]),
+    io:fwrite("~w",[Size]),
+
+    
+    case Contador<Size of
+            true->
+                Val = lists:nth(Contador,ClientsName),
+                Val2 = lists:nth(Contador,Clients), 
+                if
+                    Val == Username ->
+                    io:fwrite("true"),
+                    mensaje(Val2,{message,Name,Texto}),
+                    process_requests(Clients, ClientsName, Servers);  %% TODO: COMPLETE
+                
+                    true ->
+                        func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers,Size)
+                end;
             false->process_requests(Clients, ClientsName, Servers)
         end.
-        true ->
-            func_rec(Contador,ClientsName,Clients,Username,Name,Texto,Servers)
-    end.
+    
